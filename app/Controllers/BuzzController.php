@@ -140,6 +140,26 @@ class BuzzController extends ResourceController
         return $this->respond(['message' => 'Score awarded and buzzer reset'], ResponseInterface::HTTP_OK);
     }
 
+    public function getAllStudents($section)
+    {
+        if (empty($section)) {
+            return $this->respond(['error' => 'Section is required'], ResponseInterface::HTTP_BAD_REQUEST);
+        }
+
+        $students = $this->userModel
+            ->where('section', $section)
+            ->where('role', 'player') 
+            ->select('name, avatar')
+            ->findAll();
+
+        if (!$students) {
+            return $this->respond(['error' => 'No students found for the given section'], ResponseInterface::HTTP_NOT_FOUND);
+        }
+
+        return $this->respond(['students' => $students], ResponseInterface::HTTP_OK);
+    }
+
+
 
 
 
