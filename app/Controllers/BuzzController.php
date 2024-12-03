@@ -161,7 +161,7 @@ class BuzzController extends ResourceController
         $students = $this->userModel
             ->where('section', $section)
             ->where('role', 'player') 
-            ->select('name, avatar')
+            ->select('name, avatar, role')
             ->findAll();
 
         if (!$students) {
