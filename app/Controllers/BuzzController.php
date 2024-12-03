@@ -37,8 +37,16 @@ class BuzzController extends ResourceController
         $existingUser = $this->userModel->where('name', $data['name'])->first();
 
         if ($existingUser) {
-            // User exists, return success with existing user details
-            return $this->respond(['message' => 'User exists', 'id' => $existingUser['id'], 'role' => $existingUser['role']], ResponseInterface::HTTP_OK);
+            // User exists, update only the avatar
+            $this->userModel->update($existingUser['id'], ['avatar' => $data['avatar']]);
+
+            // Return success message with updated avatar and existing user details
+            return $this->respond([
+                'message' => 'User exists, avatar updated',
+                'id' => $existingUser['id'],
+                'role' => $existingUser['role'],
+                'avatar' => $data['avatar'],  // Return the updated avatar
+            ], ResponseInterface::HTTP_OK);
         }
 
         // Prepare new user data
@@ -58,12 +66,14 @@ class BuzzController extends ResourceController
                 'message' => 'User created',
                 'id' => $userId,
                 'role' => $userData['role'],  // Include the role in the response
+                'avatar' => $userData['avatar'],  // Return the avatar
             ], ResponseInterface::HTTP_CREATED);
         }
 
         // If insertion fails, return an error
         return $this->respond(['error' => 'Failed to create user'], ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
     }
+
 
 
     public function getBuzzerState()
@@ -176,7 +186,7 @@ class BuzzController extends ResourceController
 
         $students = $this->userModel
             ->where('section', $section)
-            ->where('role', 'player') 
+            ->where('role', 'player')
             ->select('name, avatar, role')
             ->findAll();
 
