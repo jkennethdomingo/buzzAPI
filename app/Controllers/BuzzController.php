@@ -27,24 +27,36 @@ class BuzzController extends ResourceController
     public function createUser()
     {
         $data = $this->request->getJSON(true);
-        
+
+        // Validate required fields
         if (!isset($data['name']) || !isset($data['section']) || !isset($data['avatar'])) {
             return $this->respond(['error' => 'Missing required fields'], ResponseInterface::HTTP_BAD_REQUEST);
         }
-        
+
+        // Check if user with the same name exists
+        $existingUser = $this->userModel->where('name', $data['name'])->first();
+
+        if ($existingUser) {
+            // User exists, return success with existing user details
+            return $this->respond(['message' => 'User exists', 'id' => $existingUser['id']], ResponseInterface::HTTP_OK);
+        }
+
+        // Prepare new user data
         $userData = [
             'name' => $data['name'],
             'section' => $data['section'],
             'avatar' => $data['avatar'],
             'role' => 'player',
         ];
-        
+
+        // Insert new user
         $userId = $this->userModel->insert($userData);
-        
+
         if ($userId) {
             return $this->respond(['message' => 'User created', 'id' => $userId], ResponseInterface::HTTP_CREATED);
         }
-        
+
+        // If insertion fails, return an error
         return $this->respond(['error' => 'Failed to create user'], ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
     }
 
