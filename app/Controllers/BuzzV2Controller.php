@@ -10,7 +10,7 @@ use Config\Services;
 class BuzzV2Controller extends ResourceController
 {
     protected $buzzerStateModel;
-    protected $scoreModel;
+    protected $scoresModel;
     protected $userModel;
     protected $sectionsModel;
     protected $pusher;
@@ -18,7 +18,7 @@ class BuzzV2Controller extends ResourceController
 
     public function __construct()
     {
-        $this->scoreModel = Services::scoresModel();
+        $this->scoresModel = Services::scoresModel();
         $this->userModel = Services::userModel();
         $this->sectionsModel = Services::sectionsModel();
         $this->pusher = new PusherService();
@@ -208,55 +208,55 @@ class BuzzV2Controller extends ResourceController
     }
 
     public function awardScore()
-{
-    $input = $this->request->getJSON(true);
+    {
+        $input = $this->request->getJSON(true);
 
-    if (!isset($input['user_id'], $input['score'])) {
+        if (!isset($input['user_id'], $input['score'])) {
+            return $this->respond(
+                ["message" => "User ID and score are required."],
+                ResponseInterface::HTTP_BAD_REQUEST
+            );
+        }
+
+        $userId = $input['user_id'];
+        $score = (int) $input['score'];
+
+        // Check if the user exists
+        $user = $this->userModel->find($userId);
+        if (!$user) {
+            return $this->respond(
+                ["message" => "User not found."],
+                ResponseInterface::HTTP_NOT_FOUND
+            );
+        }
+
+        // Insert the new score into the scores table
+        $this->scoresModel->insert([
+            'user_id' => $userId,
+            'score' => $score,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+
+        // Calculate the cumulative score for the user
+        $cumulativeScore = $this->scoresModel
+            ->where('user_id', $userId)
+            ->selectSum('score')
+            ->get()
+            ->getRow()
+            ->score;
+
+        // Notify via Pusher
+        $this->pusher->trigger('buzz-channel', 'score-awarded', [
+            'user_id' => $userId,
+            'new_score' => $cumulativeScore,
+            'name' => $user['name']
+        ]);
+
         return $this->respond(
-            ["message" => "User ID and score are required."],
-            ResponseInterface::HTTP_BAD_REQUEST
+            ["message" => "Score awarded successfully."],
+            ResponseInterface::HTTP_OK
         );
     }
-
-    $userId = $input['user_id'];
-    $score = (int) $input['score'];
-
-    // Check if the user exists
-    $user = $this->userModel->find($userId);
-    if (!$user) {
-        return $this->respond(
-            ["message" => "User not found."],
-            ResponseInterface::HTTP_NOT_FOUND
-        );
-    }
-
-    // Insert the new score into the scores table
-    $this->scoreModel->insert([
-        'user_id' => $userId,
-        'score' => $score,
-        'created_at' => date('Y-m-d H:i:s')
-    ]);
-
-    // Calculate the cumulative score for the user
-    $cumulativeScore = $this->scoreModel
-        ->where('user_id', $userId)
-        ->selectSum('score')
-        ->get()
-        ->getRow()
-        ->score;
-
-    // Notify via Pusher
-    $this->pusher->trigger('buzz-channel', 'score-awarded', [
-        'user_id' => $userId,
-        'new_score' => $cumulativeScore,
-        'name' => $user['name']
-    ]);
-
-    return $this->respond(
-        ["message" => "Score awarded successfully."],
-        ResponseInterface::HTTP_OK
-    );
-}
 
 
 
