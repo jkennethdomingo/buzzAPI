@@ -183,7 +183,7 @@ class BuzzV2Controller extends ResourceController
         }
 
         $students = $this->userModel
-            ->select('id, name, avatar, buzzer_sequence AS sequence, is_online')
+            ->select('id, name, avatar, buzzer_sequence AS sequence, is_online, is_buzzer_locked')
             ->where('section_id', $sectionId)
             ->findAll();
 
