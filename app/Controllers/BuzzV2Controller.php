@@ -28,26 +28,26 @@ class BuzzV2Controller extends ResourceController
     public function login()
     {
         $input = $this->request->getJson(true);
-    
+
         if (!isset($input['name']) || !isset($input['avatar'])) {
             return $this->respond(
                 ["message" => "Name and avatar are required."], 
                 ResponseInterface::HTTP_BAD_REQUEST
             );
         }
-    
+
         $name = $input['name'];
         $avatar = $input['avatar'];
-    
+
         $user = $this->userModel->where('name', $name)->first();
-    
+
         if (!$user) {
             return $this->respond(
                 ["message" => "User not found."], 
                 ResponseInterface::HTTP_NOT_FOUND
             );
         }
-    
+
         $section = $this->sectionsModel->find($user['section_id']);
         if (!$section || !$section['is_active']) {
             return $this->respond(
@@ -55,18 +55,24 @@ class BuzzV2Controller extends ResourceController
                 ResponseInterface::HTTP_FORBIDDEN
             );
         }
-    
+
         $this->db->table('users')->where('id', $user['id'])->update([
             'buzzer_sequence' => null,
             'buzzer_pressed_at' => null,
             'is_buzzer_locked' => 0
         ]);
-    
+
         $this->userModel->update($user['id'], [
             'is_online' => 1,
             'avatar' => $avatar
         ]);
-    
+
+        $this->pusher->trigger('login-channel', 'user-logged-in', [
+            'user_id' => $user['id'],
+            'name' => $user['name'],
+            'avatar' => $avatar
+        ]);
+
         return $this->respond(
             [
                 'id' => $user['id'],
@@ -75,6 +81,7 @@ class BuzzV2Controller extends ResourceController
             ResponseInterface::HTTP_OK
         );
     }
+
 
     public function getSectionGrouping()
     {
