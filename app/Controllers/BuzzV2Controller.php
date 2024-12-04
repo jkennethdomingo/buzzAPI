@@ -203,17 +203,17 @@ class BuzzV2Controller extends ResourceController
     public function awardScore()
     {
         $input = $this->request->getJson(true);
-
+    
         if (!isset($input['user_id'], $input['score'])) {
             return $this->respond(
                 ["message" => "User ID and score are required."], 
                 ResponseInterface::HTTP_BAD_REQUEST
             );
         }
-
+    
         $userId = $input['user_id'];
         $score = (int)$input['score'];
-
+    
         $user = $this->userModel->find($userId);
         if (!$user) {
             return $this->respond(
@@ -221,28 +221,34 @@ class BuzzV2Controller extends ResourceController
                 ResponseInterface::HTTP_NOT_FOUND
             );
         }
-
+    
+        // Award the score to the specific user
         $this->userModel->update($userId, [
             'score' => $user['score'] + $score
         ]);
-
-        $this->userModel->update(null, [
-            'is_buzzer_locked' => 0,
-            'buzzer_sequence' => null,
-            'buzzer_pressed_at' => null
-        ]);
-
+    
+        // Reset the buzzer state only for users in the same section
+        $this->db->table('users')
+            ->where('section_id', $user['section_id'])
+            ->update([
+                'is_buzzer_locked' => 0,
+                'buzzer_sequence' => null,
+                'buzzer_pressed_at' => null
+            ]);
+    
+        // Notify via Pusher
         $this->pusher->trigger('buzz-channel', 'score-awarded', [
             'user_id' => $userId,
             'new_score' => $user['score'] + $score,
             'name' => $user['name']
         ]);
-
+    
         return $this->respond(
-            ["message" => "Score awarded and buzzer state reset."], 
+            ["message" => "Score awarded and buzzer state reset for the section."], 
             ResponseInterface::HTTP_OK
         );
     }
+    
 
 
     public function getSectionNameById($id)
@@ -269,20 +275,37 @@ class BuzzV2Controller extends ResourceController
     );
 }
 
-
 public function resetBuzzerState()
 {
-    $this->userModel->update(null, [
-        'is_buzzer_locked' => 0,
-        'buzzer_sequence' => null,
-        'buzzer_pressed_at' => null
-    ]);
+    $input = $this->request->getJson(true);
+
+    if (!isset($input['section_id'])) {
+        return $this->respond(
+            ["message" => "Section ID is required."], 
+            ResponseInterface::HTTP_BAD_REQUEST
+        );
+    }
+
+    $sectionId = (int)$input['section_id'];
+
+    // Reset buzzer state for users in the specified section
+    $this->db->table('users')
+        ->where('section_id', $sectionId)
+        ->update([
+            'is_buzzer_locked' => 0,
+            'buzzer_sequence' => null,
+            'buzzer_pressed_at' => null
+        ]);
 
     return $this->respond(
-        ["message" => "Buzzer state reset for all users."], 
+        ["message" => "Buzzer state reset for all users in section ID {$sectionId}."], 
         ResponseInterface::HTTP_OK
     );
 }
+
+
+
+
 
     
 

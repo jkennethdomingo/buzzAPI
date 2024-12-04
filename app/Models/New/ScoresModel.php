@@ -4,15 +4,15 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class UserModel extends Model
+class ScoresModel extends Model
 {
-    protected $table            = 'users';
+    protected $table            = 'scores';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['name', 'section', 'avatar', 'role'];
+    protected $allowedFields    = ['user_id', 'score'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
