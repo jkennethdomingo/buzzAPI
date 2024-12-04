@@ -327,6 +327,7 @@ class BuzzV2Controller extends ResourceController
             ResponseInterface::HTTP_OK
         );
     }
+    
     public function logout()
     {
         $input = $this->request->getJson(true);

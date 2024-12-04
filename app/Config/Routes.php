@@ -16,6 +16,7 @@ $routes->get('/students/section/(:segment)', 'BuzzController::getAllStudents/$1'
 
 $routes->group('v2', function($routes) {
     $routes->get('dropdown', 'BuzzV2Controller::getSectionGrouping');
+    $routes->get('state', 'BuzzV2Controller::getBuzzerState');
     $routes->post('login', 'BuzzV2Controller::login');
     $routes->post('buzz', 'BuzzV2Controller::buzz');
     $routes->get('list/(:segment)', 'BuzzV2Controller::getStudentsBySection/$1');
