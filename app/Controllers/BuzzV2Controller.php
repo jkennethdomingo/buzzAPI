@@ -245,6 +245,30 @@ class BuzzV2Controller extends ResourceController
     }
 
 
+    public function getSectionNameById($id)
+{
+    if (!$id) {
+        return $this->respond(
+            ["message" => "Section ID is required."], 
+            ResponseInterface::HTTP_BAD_REQUEST
+        );
+    }
+
+    $section = $this->sectionsModel->find($id);
+
+    if (!$section) {
+        return $this->respond(
+            ["message" => "Section not found."], 
+            ResponseInterface::HTTP_NOT_FOUND
+        );
+    }
+
+    return $this->respond(
+        ["section_name" => $section['name']], 
+        ResponseInterface::HTTP_OK
+    );
+}
+
     
 
 }
