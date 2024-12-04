@@ -284,7 +284,7 @@ class BuzzV2Controller extends ResourceController
 
     public function resetBuzzerState()
     {
-        $input = $this->request->getJson(true);
+        $input = $this->request->getJSON(true);
 
         if (!isset($input['section_id'])) {
             return $this->respond(
