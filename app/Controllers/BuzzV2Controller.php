@@ -93,7 +93,7 @@ class BuzzV2Controller extends ResourceController
             $users = $this->userModel->where('section_id', $section['id'])->findAll();
 
             $userNames = array_map(function ($user) {
-                return ['name' => $user['name']];
+                return ['name' => $user['name'], 'avatar' => $user['avatar']];
             }, $users);
 
             $result[$section['name']] = $userNames;
