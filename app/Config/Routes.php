@@ -22,5 +22,6 @@ $routes->group('v2', function($routes) {
     $routes->get('section/(:segment)', 'BuzzV2Controller::getSectionNameById/$1');
     $routes->post('award', 'BuzzV2Controller::awardScore');
     $routes->post('reset', 'BuzzV2Controller::resetBuzzerState');
+    $routes->post('logout', 'BuzzV2Controller::logout');
 });
 

@@ -324,11 +324,84 @@ class BuzzV2Controller extends ResourceController
             ResponseInterface::HTTP_OK
         );
     }
+    public function logout()
+    {
+        $input = $this->request->getJson(true);
+    
+        // Check if the user_id is provided
+        if (!isset($input['user_id'])) {
+            return $this->respond(
+                ["message" => "User ID is required."],
+                ResponseInterface::HTTP_BAD_REQUEST
+            );
+        }
+    
+        $userId = $input['user_id'];
+    
+        // Check if the user exists
+        $user = $this->userModel->find($userId);
+        if (!$user) {
+            return $this->respond(
+                ["message" => "User not found."],
+                ResponseInterface::HTTP_NOT_FOUND
+            );
+        }
+    
+        // Update the user's status to offline and clear buzzer state
+        $this->userModel->update($userId, [
+            'is_online' => 0,  // Set user status to offline
+            'buzzer_sequence' => null,  // Clear the buzzer sequence
+            'buzzer_pressed_at' => null,  // Clear the timestamp for buzzer press
+            'is_buzzer_locked' => 0  // Unlock the buzzer
+        ]);
+    
+        return $this->respond(
+            ["message" => "User logged out successfully."],
+            ResponseInterface::HTTP_OK
+        );
+    }
+    
 
+    public function getBuzzerState()
+    {
+        $input = $this->request->getJson(true);
+    
+        // Check if the user_id is provided
+        if (!isset($input['user_id'])) {
+            return $this->respond(
+                ["message" => "User ID is required."],
+                ResponseInterface::HTTP_BAD_REQUEST
+            );
+        }
+    
+        $userId = $input['user_id'];
+    
+        // Check if the user exists
+        $user = $this->userModel->find($userId);
+        if (!$user) {
+            return $this->respond(
+                ["message" => "User not found."],
+                ResponseInterface::HTTP_NOT_FOUND
+            );
+        }
+    
+        // Retrieve the buzzer state for the user
+        $buzzerState = [
+            'buzzer_sequence' => $user['buzzer_sequence'],
+            'buzzer_pressed_at' => $user['buzzer_pressed_at'],
+            'is_buzzer_locked' => $user['is_buzzer_locked']
+        ];
+    
+        return $this->respond(
+            $buzzerState,
+            ResponseInterface::HTTP_OK
+        );
+    }
+    
 
+    public function getScores()
+    {
 
-
-
-
+    }
 
 }
