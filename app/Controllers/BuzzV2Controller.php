@@ -281,21 +281,33 @@ class BuzzV2Controller extends ResourceController
                 ResponseInterface::HTTP_BAD_REQUEST
             );
         }
-
+    
         $section = $this->sectionsModel->find($id);
-
+    
         if (!$section) {
             return $this->respond(
                 ["message" => "Section not found."],
                 ResponseInterface::HTTP_NOT_FOUND
             );
         }
-
+    
+        // Fetch students ordered by sequence with NULLs at the end
+        $students = $this->db->table('students')
+            ->where('section_id', $id)
+            ->orderBy('sequence IS NULL', 'ASC') // NULL values last
+            ->orderBy('sequence', 'ASC')        // Order by sequence
+            ->get()
+            ->getResultArray();
+    
         return $this->respond(
-            ["section_name" => $section['name']],
+            [
+                "section_name" => $section['name'],
+                "students" => $students
+            ],
             ResponseInterface::HTTP_OK
         );
     }
+    
 
     public function resetBuzzerState()
     {
