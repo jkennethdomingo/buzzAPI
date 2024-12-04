@@ -22,7 +22,7 @@ class BuzzV2Controller extends ResourceController
         $this->userModel = Services::userModel();
         $this->sectionsModel = Services::sectionsModel();
         $this->pusher = new PusherService();
-        $this->db = \Config\Database::connect(); 
+        $this->db = \Config\Database::connect();
     }
 
     public function login()
@@ -31,7 +31,7 @@ class BuzzV2Controller extends ResourceController
 
         if (!isset($input['id']) || !isset($input['avatar'])) {
             return $this->respond(
-                ["message" => "ID and avatar are required."], 
+                ["message" => "ID and avatar are required."],
                 ResponseInterface::HTTP_BAD_REQUEST
             );
         }
@@ -43,7 +43,7 @@ class BuzzV2Controller extends ResourceController
 
         if (!$user) {
             return $this->respond(
-                ["message" => "User not found."], 
+                ["message" => "User not found."],
                 ResponseInterface::HTTP_NOT_FOUND
             );
         }
@@ -51,7 +51,7 @@ class BuzzV2Controller extends ResourceController
         $section = $this->sectionsModel->find($user['section_id']);
         if (!$section || !$section['is_active']) {
             return $this->respond(
-                ["message" => "User's section is inactive."], 
+                ["message" => "User's section is inactive."],
                 ResponseInterface::HTTP_FORBIDDEN
             );
         }
@@ -89,7 +89,7 @@ class BuzzV2Controller extends ResourceController
 
         if (!$sections) {
             return $this->respond(
-                ["message" => "No sections found."], 
+                ["message" => "No sections found."],
                 ResponseInterface::HTTP_NOT_FOUND
             );
         }
@@ -126,7 +126,7 @@ class BuzzV2Controller extends ResourceController
 
         if (!isset($input['user_id'])) {
             return $this->respond(
-                ["message" => "User ID is required."], 
+                ["message" => "User ID is required."],
                 ResponseInterface::HTTP_BAD_REQUEST
             );
         }
@@ -137,7 +137,7 @@ class BuzzV2Controller extends ResourceController
 
         if (!$user) {
             return $this->respond(
-                ["message" => "User not found."], 
+                ["message" => "User not found."],
                 ResponseInterface::HTTP_NOT_FOUND
             );
         }
@@ -153,23 +153,30 @@ class BuzzV2Controller extends ResourceController
             'buzzer_sequence' => $maxSequence + 1
         ]);
 
+        // Fetch the updated user state
+        $updatedUser = $this->userModel->find($userId);
+
         $this->pusher->trigger('buzz-channel', 'buzz-event', [
             'user_id' => $userId,
-            'sequence' => $maxSequence + 1,
-            'name' => $user['name'],
+            'sequence' => $updatedUser['buzzer_sequence'],
+            'name' => $updatedUser['name'],
         ]);
 
         return $this->respond(
-            ["message" => "Buzz recorded successfully."], 
+            [
+                "message" => "Buzz recorded successfully.",
+                "is_buzzer_locked" => $updatedUser['is_buzzer_locked']
+            ],
             ResponseInterface::HTTP_OK
         );
     }
+
 
     public function getStudentsBySection($sectionId)
     {
         if (!$sectionId) {
             return $this->respond(
-                ["message" => "Section ID is required."], 
+                ["message" => "Section ID is required."],
                 ResponseInterface::HTTP_BAD_REQUEST
             );
         }
@@ -177,7 +184,7 @@ class BuzzV2Controller extends ResourceController
         $section = $this->sectionsModel->find($sectionId);
         if (!$section) {
             return $this->respond(
-                ["message" => "Section not found."], 
+                ["message" => "Section not found."],
                 ResponseInterface::HTTP_NOT_FOUND
             );
         }
@@ -189,7 +196,7 @@ class BuzzV2Controller extends ResourceController
 
         if (empty($students)) {
             return $this->respond(
-                ["message" => "No students found in this section."], 
+                ["message" => "No students found in this section."],
                 ResponseInterface::HTTP_OK
             );
         }
@@ -203,30 +210,30 @@ class BuzzV2Controller extends ResourceController
     public function awardScore()
     {
         $input = $this->request->getJson(true);
-    
+
         if (!isset($input['user_id'], $input['score'])) {
             return $this->respond(
-                ["message" => "User ID and score are required."], 
+                ["message" => "User ID and score are required."],
                 ResponseInterface::HTTP_BAD_REQUEST
             );
         }
-    
+
         $userId = $input['user_id'];
-        $score = (int)$input['score'];
-    
+        $score = (int) $input['score'];
+
         $user = $this->userModel->find($userId);
         if (!$user) {
             return $this->respond(
-                ["message" => "User not found."], 
+                ["message" => "User not found."],
                 ResponseInterface::HTTP_NOT_FOUND
             );
         }
-    
+
         // Award the score to the specific user
         $this->userModel->update($userId, [
             'score' => $user['score'] + $score
         ]);
-    
+
         // Reset the buzzer state only for users in the same section
         $this->db->table('users')
             ->where('section_id', $user['section_id'])
@@ -235,78 +242,78 @@ class BuzzV2Controller extends ResourceController
                 'buzzer_sequence' => null,
                 'buzzer_pressed_at' => null
             ]);
-    
+
         // Notify via Pusher
         $this->pusher->trigger('buzz-channel', 'score-awarded', [
             'user_id' => $userId,
             'new_score' => $user['score'] + $score,
             'name' => $user['name']
         ]);
-    
+
         return $this->respond(
-            ["message" => "Score awarded and buzzer state reset for the section."], 
+            ["message" => "Score awarded and buzzer state reset for the section."],
             ResponseInterface::HTTP_OK
         );
     }
-    
+
 
 
     public function getSectionNameById($id)
-{
-    if (!$id) {
+    {
+        if (!$id) {
+            return $this->respond(
+                ["message" => "Section ID is required."],
+                ResponseInterface::HTTP_BAD_REQUEST
+            );
+        }
+
+        $section = $this->sectionsModel->find($id);
+
+        if (!$section) {
+            return $this->respond(
+                ["message" => "Section not found."],
+                ResponseInterface::HTTP_NOT_FOUND
+            );
+        }
+
         return $this->respond(
-            ["message" => "Section ID is required."], 
-            ResponseInterface::HTTP_BAD_REQUEST
+            ["section_name" => $section['name']],
+            ResponseInterface::HTTP_OK
         );
     }
 
-    $section = $this->sectionsModel->find($id);
+    public function resetBuzzerState()
+    {
+        $input = $this->request->getJson(true);
 
-    if (!$section) {
+        if (!isset($input['section_id'])) {
+            return $this->respond(
+                ["message" => "Section ID is required."],
+                ResponseInterface::HTTP_BAD_REQUEST
+            );
+        }
+
+        $sectionId = (int) $input['section_id'];
+
+        // Reset buzzer state for users in the specified section
+        $this->db->table('users')
+            ->where('section_id', $sectionId)
+            ->update([
+                'is_buzzer_locked' => 0,
+                'buzzer_sequence' => null,
+                'buzzer_pressed_at' => null
+            ]);
+
         return $this->respond(
-            ["message" => "Section not found."], 
-            ResponseInterface::HTTP_NOT_FOUND
+            ["message" => "Buzzer state reset for all users in section ID {$sectionId}."],
+            ResponseInterface::HTTP_OK
         );
     }
 
-    return $this->respond(
-        ["section_name" => $section['name']], 
-        ResponseInterface::HTTP_OK
-    );
-}
-
-public function resetBuzzerState()
-{
-    $input = $this->request->getJson(true);
-
-    if (!isset($input['section_id'])) {
-        return $this->respond(
-            ["message" => "Section ID is required."], 
-            ResponseInterface::HTTP_BAD_REQUEST
-        );
-    }
-
-    $sectionId = (int)$input['section_id'];
-
-    // Reset buzzer state for users in the specified section
-    $this->db->table('users')
-        ->where('section_id', $sectionId)
-        ->update([
-            'is_buzzer_locked' => 0,
-            'buzzer_sequence' => null,
-            'buzzer_pressed_at' => null
-        ]);
-
-    return $this->respond(
-        ["message" => "Buzzer state reset for all users in section ID {$sectionId}."], 
-        ResponseInterface::HTTP_OK
-    );
-}
 
 
 
 
 
-    
 
 }
