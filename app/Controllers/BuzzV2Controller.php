@@ -230,12 +230,24 @@ class BuzzV2Controller extends ResourceController
             );
         }
 
-        // Insert the new score into the scores table
-        $this->scoresModel->insert([
-            'user_id' => $userId,
-            'score' => $score,
-            'created_at' => date('Y-m-d H:i:s')
-        ]);
+        // Check if a score record for the user already exists
+        $existingScore = $this->scoresModel->where('user_id', $userId)->first();
+
+        if ($existingScore) {
+            // Update the existing score
+            $newScore = $existingScore['score'] + $score; // Add the new score to the existing score
+            $this->scoresModel->update($existingScore['id'], [
+                'score' => $newScore,
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+        } else {
+            // Insert the new score if no record exists
+            $this->scoresModel->insert([
+                'user_id' => $userId,
+                'score' => $score,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        }
 
         // Calculate the cumulative score for the user
         $cumulativeScore = $this->scoresModel
