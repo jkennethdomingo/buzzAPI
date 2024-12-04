@@ -93,10 +93,18 @@ class BuzzV2Controller extends ResourceController
             $users = $this->userModel->where('section_id', $section['id'])->findAll();
 
             $userNames = array_map(function ($user) {
-                return ['name' => $user['name'], 'avatar' => $user['avatar']];
+                return [
+                    'id' => $user['id'],
+                    'name' => $user['name'],
+                    'avatar' => $user['avatar']
+                ];
             }, $users);
 
-            $result[$section['name']] = $userNames;
+            $result[] = [
+                'section_id' => $section['id'],
+                'section_name' => $section['name'],
+                'users' => $userNames
+            ];
         }
 
         return $this->respond(
@@ -104,6 +112,87 @@ class BuzzV2Controller extends ResourceController
             ResponseInterface::HTTP_OK
         );
     }
+
+    public function buzz()
+    {
+        $input = $this->request->getJson(true);
+
+        if (!isset($input['user_id'])) {
+            return $this->respond(
+                ["message" => "User ID is required."], 
+                ResponseInterface::HTTP_BAD_REQUEST
+            );
+        }
+
+        $userId = $input['user_id'];
+
+        $user = $this->userModel->find($userId);
+
+        if (!$user) {
+            return $this->respond(
+                ["message" => "User not found."], 
+                ResponseInterface::HTTP_NOT_FOUND
+            );
+        }
+
+        $maxSequence = $this->db->table('users')
+            ->selectMax('buzzer_sequence', 'max_sequence')
+            ->get()
+            ->getRowArray()['max_sequence'] ?? 0;
+
+        $this->userModel->update($userId, [
+            'is_buzzer_locked' => 1,
+            'buzzer_pressed_at' => date('Y-m-d H:i:s'),
+            'buzzer_sequence' => $maxSequence + 1
+        ]);
+
+        $this->pusher->trigger('buzz-channel', 'buzz-event', [
+            'user_id' => $userId,
+            'sequence' => $maxSequence + 1,
+            'name' => $user['name'],
+        ]);
+
+        return $this->respond(
+            ["message" => "Buzz recorded successfully."], 
+            ResponseInterface::HTTP_OK
+        );
+    }
+
+    public function getStudentsBySection($sectionId)
+    {
+        if (!$sectionId) {
+            return $this->respond(
+                ["message" => "Section ID is required."], 
+                ResponseInterface::HTTP_BAD_REQUEST
+            );
+        }
+
+        $section = $this->sectionsModel->find($sectionId);
+        if (!$section) {
+            return $this->respond(
+                ["message" => "Section not found."], 
+                ResponseInterface::HTTP_NOT_FOUND
+            );
+        }
+
+        $students = $this->userModel
+            ->select('id, name, avatar, buzzer_sequence AS sequence, is_online')
+            ->where('section_id', $sectionId)
+            ->findAll();
+
+        if (empty($students)) {
+            return $this->respond(
+                ["message" => "No students found in this section."], 
+                ResponseInterface::HTTP_OK
+            );
+        }
+
+        return $this->respond(
+            $students,
+            ResponseInterface::HTTP_OK
+        );
+    }
+
     
 
 }
