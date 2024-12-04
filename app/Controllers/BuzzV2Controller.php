@@ -29,17 +29,17 @@ class BuzzV2Controller extends ResourceController
     {
         $input = $this->request->getJson(true);
 
-        if (!isset($input['name']) || !isset($input['avatar'])) {
+        if (!isset($input['id']) || !isset($input['avatar'])) {
             return $this->respond(
-                ["message" => "Name and avatar are required."], 
+                ["message" => "ID and avatar are required."], 
                 ResponseInterface::HTTP_BAD_REQUEST
             );
         }
 
-        $name = $input['name'];
+        $id = $input['id'];
         $avatar = $input['avatar'];
 
-        $user = $this->userModel->where('name', $name)->first();
+        $user = $this->userModel->find($id);
 
         if (!$user) {
             return $this->respond(
