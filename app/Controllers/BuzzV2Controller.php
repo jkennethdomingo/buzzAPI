@@ -209,7 +209,7 @@ class BuzzV2Controller extends ResourceController
 
     public function awardScore()
     {
-        $input = $this->request->getJson(true);
+        $input = $this->request->getJSON(true);
 
         if (!isset($input['user_id'], $input['score'])) {
             return $this->respond(
@@ -230,18 +230,6 @@ class BuzzV2Controller extends ResourceController
         }
 
         // Award the score to the specific user
-        $this->userModel->update($userId, [
-            'score' => $user['score'] + $score
-        ]);
-
-        // Reset the buzzer state only for users in the same section
-        $this->db->table('users')
-            ->where('section_id', $user['section_id'])
-            ->update([
-                'is_buzzer_locked' => 0,
-                'buzzer_sequence' => null,
-                'buzzer_pressed_at' => null
-            ]);
 
         // Notify via Pusher
         $this->pusher->trigger('buzz-channel', 'score-awarded', [
