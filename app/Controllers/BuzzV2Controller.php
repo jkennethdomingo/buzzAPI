@@ -319,6 +319,9 @@ class BuzzV2Controller extends ResourceController
                 'buzzer_pressed_at' => null
             ]);
 
+            $this->pusher->trigger('buzz-channel', 'score-awarded', [
+            ]);
+
         return $this->respond(
             ["message" => "Buzzer state reset for all users in section ID {$sectionId}."],
             ResponseInterface::HTTP_OK
