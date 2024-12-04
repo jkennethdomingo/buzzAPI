@@ -12,7 +12,7 @@ class BuzzerStateModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['user_id', 'pressed_at', 'is_locked'];
+    protected $allowedFields    = ['user_id', 'sequence', 'pressed_at', 'is_locked'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
