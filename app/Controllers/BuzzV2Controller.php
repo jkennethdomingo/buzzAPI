@@ -269,6 +269,21 @@ class BuzzV2Controller extends ResourceController
     );
 }
 
+
+public function resetBuzzerState()
+{
+    $this->userModel->update(null, [
+        'is_buzzer_locked' => 0,
+        'buzzer_sequence' => null,
+        'buzzer_pressed_at' => null
+    ]);
+
+    return $this->respond(
+        ["message" => "Buzzer state reset for all users."], 
+        ResponseInterface::HTTP_OK
+    );
+}
+
     
 
 }

@@ -21,5 +21,6 @@ $routes->group('v2', function($routes) {
     $routes->get('list/(:segment)', 'BuzzV2Controller::getStudentsBySection/$1');
     $routes->get('section/(:segment)', 'BuzzV2Controller::getSectionNameById/$1');
     $routes->get('award', 'BuzzV2Controller::awardScore');
+    $routes->post('reset', 'BuzzV2Controller::resetBuzzerState');
 });
 
