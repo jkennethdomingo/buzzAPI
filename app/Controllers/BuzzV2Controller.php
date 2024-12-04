@@ -327,7 +327,7 @@ class BuzzV2Controller extends ResourceController
     public function logout()
     {
         $input = $this->request->getJson(true);
-    
+
         // Check if the user_id is provided
         if (!isset($input['user_id'])) {
             return $this->respond(
@@ -335,9 +335,9 @@ class BuzzV2Controller extends ResourceController
                 ResponseInterface::HTTP_BAD_REQUEST
             );
         }
-    
+
         $userId = $input['user_id'];
-    
+
         // Check if the user exists
         $user = $this->userModel->find($userId);
         if (!$user) {
@@ -346,7 +346,7 @@ class BuzzV2Controller extends ResourceController
                 ResponseInterface::HTTP_NOT_FOUND
             );
         }
-    
+
         // Update the user's status to offline and clear buzzer state
         $this->userModel->update($userId, [
             'is_online' => 0,  // Set user status to offline
@@ -354,7 +354,14 @@ class BuzzV2Controller extends ResourceController
             'buzzer_pressed_at' => null,  // Clear the timestamp for buzzer press
             'is_buzzer_locked' => 0  // Unlock the buzzer
         ]);
-    
+
+        // Trigger Pusher event for user logout
+        $this->pusher->trigger('buzz-channel', 'user-logged-out', [
+            'user_id' => $userId,
+            'name' => $user['name'],
+            'message' => 'User logged out successfully.'
+        ]);
+
         return $this->respond(
             ["message" => "User logged out successfully."],
             ResponseInterface::HTTP_OK
