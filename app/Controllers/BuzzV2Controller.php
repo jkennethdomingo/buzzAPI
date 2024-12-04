@@ -121,55 +121,66 @@ class BuzzV2Controller extends ResourceController
     }
 
     public function buzz()
-    {
-        $input = $this->request->getJson(true);
+{
+    $input = $this->request->getJson(true);
 
-        if (!isset($input['user_id'])) {
-            return $this->respond(
-                ["message" => "User ID is required."],
-                ResponseInterface::HTTP_BAD_REQUEST
-            );
-        }
-
-        $userId = $input['user_id'];
-
-        $user = $this->userModel->find($userId);
-
-        if (!$user) {
-            return $this->respond(
-                ["message" => "User not found."],
-                ResponseInterface::HTTP_NOT_FOUND
-            );
-        }
-
-        $maxSequence = $this->db->table('users')
-            ->selectMax('buzzer_sequence', 'max_sequence')
-            ->get()
-            ->getRowArray()['max_sequence'] ?? 0;
-
-        $this->userModel->update($userId, [
-            'is_buzzer_locked' => 1,
-            'buzzer_pressed_at' => date('Y-m-d H:i:s'),
-            'buzzer_sequence' => $maxSequence + 1
-        ]);
-
-        // Fetch the updated user state
-        $updatedUser = $this->userModel->find($userId);
-
-        $this->pusher->trigger('buzz-channel', 'buzz-event', [
-            'user_id' => $userId,
-            'sequence' => $updatedUser['buzzer_sequence'],
-            'name' => $updatedUser['name'],
-        ]);
-
+    if (!isset($input['user_id'])) {
         return $this->respond(
-            [
-                "message" => "Buzz recorded successfully.",
-                "is_buzzer_locked" => $updatedUser['is_buzzer_locked']
-            ],
-            ResponseInterface::HTTP_OK
+            ["message" => "User ID is required."],
+            ResponseInterface::HTTP_BAD_REQUEST
         );
     }
+
+    $userId = $input['user_id'];
+
+    $user = $this->userModel->find($userId);
+
+    if (!$user) {
+        return $this->respond(
+            ["message" => "User not found."],
+            ResponseInterface::HTTP_NOT_FOUND
+        );
+    }
+
+    // Check if buzzer_sequence is already set (not null)
+    if ($user['buzzer_sequence'] !== null) {
+        return $this->respond(
+            ["message" => "Buzzer sequence already recorded."],
+            ResponseInterface::HTTP_BAD_REQUEST
+        );
+    }
+
+    // Get the maximum sequence value
+    $maxSequence = $this->db->table('users')
+        ->selectMax('buzzer_sequence', 'max_sequence')
+        ->get()
+        ->getRowArray()['max_sequence'] ?? 0;
+
+    // Update user details, set buzzer sequence if not set
+    $this->userModel->update($userId, [
+        'is_buzzer_locked' => 1,
+        'buzzer_pressed_at' => date('Y-m-d H:i:s'),
+        'buzzer_sequence' => $maxSequence + 1 // Set sequence if not already set
+    ]);
+
+    // Fetch the updated user state
+    $updatedUser = $this->userModel->find($userId);
+
+    // Trigger the event for the buzzer action
+    $this->pusher->trigger('buzz-channel', 'buzz-event', [
+        'user_id' => $userId,
+        'sequence' => $updatedUser['buzzer_sequence'],
+        'name' => $updatedUser['name'],
+    ]);
+
+    return $this->respond(
+        [
+            "message" => "Buzz recorded successfully.",
+            "is_buzzer_locked" => $updatedUser['is_buzzer_locked']
+        ],
+        ResponseInterface::HTTP_OK
+    );
+}
 
 
     public function getStudentsBySection($sectionId)
