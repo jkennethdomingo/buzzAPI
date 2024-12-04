@@ -299,31 +299,20 @@ class BuzzV2Controller extends ResourceController
 
     public function resetBuzzerState()
     {
-        $input = $this->request->getJSON(true);
 
-        if (!isset($input['section_id'])) {
-            return $this->respond(
-                ["message" => "Section ID is required."],
-                ResponseInterface::HTTP_BAD_REQUEST
-            );
-        }
-
-        $sectionId = (int) $input['section_id'];
-
-        // Reset buzzer state for users in the specified section
         $this->db->table('users')
-            ->where('section_id', $sectionId)
             ->update([
                 'is_buzzer_locked' => 0,
                 'buzzer_sequence' => null,
                 'buzzer_pressed_at' => null
             ]);
 
+
             $this->pusher->trigger('buzz-channel', 'score-awarded', [
             ]);
 
         return $this->respond(
-            ["message" => "Buzzer state reset for all users in section ID {$sectionId}."],
+            ["message" => "Buzzer state reset for all users."],
             ResponseInterface::HTTP_OK
         );
     }
