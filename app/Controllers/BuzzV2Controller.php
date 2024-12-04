@@ -75,6 +75,35 @@ class BuzzV2Controller extends ResourceController
             ResponseInterface::HTTP_OK
         );
     }
+
+    public function getSectionGrouping()
+    {
+        $sections = $this->sectionsModel->findAll();
+
+        if (!$sections) {
+            return $this->respond(
+                ["message" => "No sections found."], 
+                ResponseInterface::HTTP_NOT_FOUND
+            );
+        }
+
+        $result = [];
+
+        foreach ($sections as $section) {
+            $users = $this->userModel->where('section_id', $section['id'])->findAll();
+
+            $userNames = array_map(function ($user) {
+                return ['name' => $user['name']];
+            }, $users);
+
+            $result[$section['name']] = $userNames;
+        }
+
+        return $this->respond(
+            $result,
+            ResponseInterface::HTTP_OK
+        );
+    }
     
 
 }
