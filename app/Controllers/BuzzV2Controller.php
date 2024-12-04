@@ -230,6 +230,9 @@ class BuzzV2Controller extends ResourceController
         }
 
         // Award the score to the specific user
+        $this->userModel->update($userId, [
+            'score' => $user['score'] + $score
+        ]);
 
         // Notify via Pusher
         $this->pusher->trigger('buzz-channel', 'score-awarded', [
