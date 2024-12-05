@@ -12,7 +12,7 @@ class ScoresModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['user_id', 'type', 'activity_id', 'score'];
+    protected $allowedFields    = ['user_id', 'score'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;

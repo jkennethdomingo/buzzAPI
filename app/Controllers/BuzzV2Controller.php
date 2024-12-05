@@ -281,9 +281,6 @@ class BuzzV2Controller extends ResourceController
         );
     }
 
-
-
-
     public function getSectionNameById($id)
     {
         if (!$id) {

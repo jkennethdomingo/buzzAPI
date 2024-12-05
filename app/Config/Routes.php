@@ -26,3 +26,13 @@ $routes->group('v2', function($routes) {
     $routes->post('logout', 'BuzzV2Controller::logout');
 });
 
+$routes->group('v3', function($routes) {
+    $routes->post('login', 'BuzzV3Controller::login');
+    $routes->get('dropdown', 'BuzzV3Controller::getSectionGrouping');
+    $routes->get('list/(:segment)', 'BuzzV3Controller::getStudentsBySection/$1');
+    $routes->post('reset', 'BuzzV3Controller::resetBuzzerState');
+    $routes->post('logout', 'BuzzV3Controller::logout');
+    $routes->post('buzz', 'BuzzV3Controller::buzz');
+    $routes->post('logout-all', 'BuzzV3Controller::logoutAllPlayers');
+});
+
