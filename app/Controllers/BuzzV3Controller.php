@@ -338,6 +338,104 @@ class BuzzV3Controller extends ResourceController
             ->setBody(file_get_contents($filePath));
     }
 
+    public function awardScore()
+{
+    // Parse input
+    $input = $this->request->getJSON(true);
+
+    // Validate input
+    if (empty($input['user_id']) || !isset($input['score'])) {
+        return $this->respond(
+            ["message" => "User ID and score are required."],
+            ResponseInterface::HTTP_BAD_REQUEST
+        );
+    }
+
+    $userId = (int) $input['user_id'];
+    $score = (int) $input['score'];
+
+    // Validate score
+    if ($score < 0) {
+        return $this->respond(
+            ["message" => "Score must be a non-negative value."],
+            ResponseInterface::HTTP_BAD_REQUEST
+        );
+    }
+
+    // Check if the user exists
+    $user = $this->userModel->find($userId);
+    if (!$user) {
+        return $this->respond(
+            ["message" => "User not found."],
+            ResponseInterface::HTTP_NOT_FOUND
+        );
+    }
+
+    // Handle scoring logic
+    try {
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        // Check if an existing score entry exists for the user
+        $existingScore = $this->scoresModel->where([
+            'user_id' => $userId,
+            'type' => 'recitation', // Assuming we're only dealing with 'recitation' type
+            'activity_id' => null // Handle null activity_id based on context
+        ])->first();
+
+        if ($existingScore) {
+            // Update the score
+            $newScore = $existingScore['score'] + $score;
+            $this->scoresModel->update($existingScore['id'], [
+                'score' => $newScore,
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+        } else {
+            // Insert a new record if it doesn't exist
+            $this->scoresModel->insert([
+                'user_id' => $userId,
+                'type' => 'recitation',
+                'activity_id' => null,
+                'score' => $score,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        }
+
+        // Commit transaction
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            throw new \RuntimeException("Transaction failed while updating the score.");
+        }
+
+        // Calculate cumulative score
+        $cumulativeScore = $this->scoresModel
+            ->where('user_id', $userId)
+            ->selectSum('score')
+            ->get()
+            ->getRow()
+            ->score;
+
+        // Send real-time notification
+        $this->pusher->trigger('buzz-channel', 'score-awarded', [
+            'user_id' => $userId,
+            'new_score' => $cumulativeScore,
+            'name' => $user['name']
+        ]);
+
+        return $this->respond(
+            ["message" => "Score awarded successfully.", "cumulative_score" => $cumulativeScore],
+            ResponseInterface::HTTP_OK
+        );
+    } catch (\Exception $e) {
+        log_message('error', "Error awarding score: " . $e->getMessage());
+        return $this->respond(
+            ["message" => "An error occurred while processing the score."],
+            ResponseInterface::HTTP_INTERNAL_SERVER_ERROR
+        );
+    }
+}
+
     
 
 

@@ -35,5 +35,6 @@ $routes->group('v3', function($routes) {
     $routes->post('buzz', 'BuzzV3Controller::buzz');
     $routes->post('logout-all', 'BuzzV3Controller::logoutAllPlayers');
     $routes->get('files', 'BuzzV3Controller::serveFile');
+    $routes->post('award', 'BuzzV3Controller::awardScore');
 });
 
