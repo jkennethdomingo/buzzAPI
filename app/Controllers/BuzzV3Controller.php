@@ -321,9 +321,21 @@ class BuzzV3Controller extends ResourceController
         ], ResponseInterface::HTTP_OK);
     }
 
-    public function downloadPdf()
+    public function serveFile()
     {
-        
+        $filename = 'tuts.pdf';
+        $filePath = WRITEPATH . 'uploads/' . $filename;
+
+        // Check if the file exists
+        if (!is_file($filePath)) {
+            return $this->response->setStatusCode(404, 'File not found');
+        }
+
+        // Serve the file as a response
+        return $this->response
+            ->setHeader('Content-Type', 'application/pdf') // MIME type for PDF
+            ->setHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
+            ->setBody(file_get_contents($filePath));
     }
 
     
