@@ -60,13 +60,13 @@ class BuzzV3Controller extends ResourceController
             ], ResponseInterface::HTTP_NOT_FOUND);
         }
 
-        if ((int)$user['is_online'] === 1) {
-            return $this->respond([
-                "data" => null,
-                "code" => ResponseInterface::HTTP_CONFLICT,
-                "message" => "User is already logged in."
-            ], ResponseInterface::HTTP_CONFLICT);
-        }
+        // if ((int)$user['is_online'] === 1) {
+        //     return $this->respond([
+        //         "data" => null,
+        //         "code" => ResponseInterface::HTTP_CONFLICT,
+        //         "message" => "User is already logged in."
+        //     ], ResponseInterface::HTTP_CONFLICT);
+        // }
 
         if (isset($user['section_active']) && (int)$user['section_active'] !== 1) {
             return $this->respond([
