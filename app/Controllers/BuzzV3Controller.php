@@ -321,6 +321,11 @@ class BuzzV3Controller extends ResourceController
         ], ResponseInterface::HTTP_OK);
     }
 
+    public function downloadPdf()
+    {
+        
+    }
+
     
 
 

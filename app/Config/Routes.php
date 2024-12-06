@@ -34,5 +34,6 @@ $routes->group('v3', function($routes) {
     $routes->post('logout', 'BuzzV3Controller::logout');
     $routes->post('buzz', 'BuzzV3Controller::buzz');
     $routes->post('logout-all', 'BuzzV3Controller::logoutAllPlayers');
+    $routes->get('pdf', 'BuzzV3Controller::downloadPdf');
 });
 
