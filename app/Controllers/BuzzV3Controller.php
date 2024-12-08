@@ -81,7 +81,7 @@ class BuzzV3Controller extends ResourceController
         //     ], ResponseInterface::HTTP_CONFLICT);
         // }
 
-        if (isset($user['section_active']) && (int)$user['section_active'] !== 1) {
+        if (isset($user['section_active']) && (int) $user['section_active'] !== 1) {
             return $this->respond([
                 "data" => null,
                 "code" => ResponseInterface::HTTP_FORBIDDEN,
@@ -95,7 +95,7 @@ class BuzzV3Controller extends ResourceController
                 'buzzer_pressed_at' => null,
                 'is_buzzer_locked' => 0,
                 'is_online' => 1,
-                'avatar' => $avatar, 
+                'avatar' => $avatar,
             ],
             ['id' => $id]
         );
@@ -145,16 +145,16 @@ class BuzzV3Controller extends ResourceController
     public function getSectionGrouping()
     {
         $sections = $this->sectionsModel->findAll();
-    
+
         if (!$sections) {
             return $this->respond(
                 ["message" => "No sections found."],
                 ResponseInterface::HTTP_NOT_FOUND
             );
         }
-    
+
         $adminUsers = $this->userModel->where('role', 'admin')->findAll();
-    
+
         $adminUserNames = array_map(function ($admin) {
             return [
                 'id' => $admin['id'],
@@ -162,12 +162,12 @@ class BuzzV3Controller extends ResourceController
                 'avatar' => $admin['avatar'],
             ];
         }, $adminUsers);
-    
+
         $result = [];
-    
+
         foreach ($sections as $section) {
             $users = $this->userModel->where('section_id', $section['id'])->findAll();
-    
+
             $sectionUserNames = array_map(function ($user) {
                 return [
                     'id' => $user['id'],
@@ -175,16 +175,16 @@ class BuzzV3Controller extends ResourceController
                     'avatar' => $user['avatar'],
                 ];
             }, $users);
-    
+
             $allUsers = array_merge($sectionUserNames, $adminUserNames);
-    
+
             $result[] = [
                 'section_id' => $section['id'],
                 'section_name' => $section['name'],
                 'users' => $allUsers,
             ];
         }
-    
+
         return $this->respond(
             $result,
             ResponseInterface::HTTP_OK
@@ -237,8 +237,8 @@ class BuzzV3Controller extends ResourceController
             ]);
 
 
-            $this->pusher->trigger('buzz-channel', 'score-awarded', [
-            ]);
+        $this->pusher->trigger('buzz-channel', 'score-awarded', [
+        ]);
 
         return $this->respond(
             ["message" => "Buzzer state reset for all users."],
@@ -271,7 +271,7 @@ class BuzzV3Controller extends ResourceController
             'is_online' => 0,
             'buzzer_sequence' => null,
             'buzzer_pressed_at' => null,
-            'is_buzzer_locked' => 0 
+            'is_buzzer_locked' => 0
         ]);
 
         $this->pusher->trigger('buzz-channel', 'user-logged-out', [
@@ -480,7 +480,7 @@ class BuzzV3Controller extends ResourceController
         try {
             // Fetch all activities from the database
             $activities = $this->activitiesModel->findAll();
-    
+
             // Return the activities as a JSON response
             return $this->respond([
                 'status' => ResponseInterface::HTTP_OK,
@@ -496,7 +496,7 @@ class BuzzV3Controller extends ResourceController
             ], ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-    
+
 
     public function markAsDoneAnActivity()
     {
@@ -627,19 +627,19 @@ class BuzzV3Controller extends ResourceController
     public function scoreAnActivity()
     {
         $data = $this->request->getJSON(true); // Decodes JSON payload as an associative array
-    
+
         $userId = $data['user_id'] ?? null;
         $activityId = $data['activity_id'] ?? null;
         $score = $data['score'] ?? null;
-    
+
         if (!$userId || !$activityId || $score === null) {
             return $this->fail('User ID, Activity ID, and Score are required.', ResponseInterface::HTTP_BAD_REQUEST);
         }
-    
+
         try {
             // Update the score field
             $result = $this->userActivitiesModel->updateActivity($userId, $activityId, ['score' => $score]);
-    
+
             if ($result) {
                 $this->pusher->trigger('activities-channel', 'activity-scored', [
                     'user_id' => $userId,
@@ -657,8 +657,8 @@ class BuzzV3Controller extends ResourceController
             return $this->failServerError($e->getMessage());
         }
     }
-    
-    
+
+
 
 
 }
