@@ -5,7 +5,14 @@ namespace Config;
 use CodeIgniter\Config\BaseService;
 
 use App\Models\{
-    BuzzerStateModel, LogsModel, ScoresModel, UserModel, SectionsModel, ActivitiesModel, UserActivitiesModel, AttendanceModel
+    BuzzerStateModel,
+    LogsModel,
+    ScoresModel,
+    UserModel,
+    SectionsModel,
+    ActivitiesModel,
+    UserActivitiesModel,
+    AttendanceModel
 };
 
 /**

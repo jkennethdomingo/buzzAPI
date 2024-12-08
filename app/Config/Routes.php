@@ -40,7 +40,7 @@ $routes->group('v3', function($routes) {
     // Activities
     $routes->get('activities', 'BuzzV3Controller::fetchActivities');
     $routes->post('mark-as-done', 'BuzzV3Controller::markAsDoneAnActivity');
-    $routes->post('un-mark-as-done', 'BuzzV3Controller::unMarkAsDoneAnActivity');
+    $routes->post('unmark-as-done', 'BuzzV3Controller::unMarkAsDoneAnActivity');
     $routes->post('help', 'BuzzV3Controller::requestForHelp');
     $routes->post('cancel-help', 'BuzzV3Controller::cancelRequestForHelp');
     $routes->post('give-score', 'BuzzV3Controller::scoreAnActivity');

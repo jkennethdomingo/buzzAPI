@@ -510,16 +510,27 @@ class BuzzV3Controller extends ResourceController
         }
 
         try {
+            // Mark the activity as done
             $result = $this->userActivitiesModel->markAsDoneAnActivity($userId, $activityId);
 
             if ($result) {
+                // Get the updated activity to fetch the is_done value
+                $updatedActivity = $this->userActivitiesModel
+                    ->where('user_id', $userId)
+                    ->where('activity_id', $activityId)
+                    ->first();
+
+                // Trigger Pusher
                 $this->pusher->trigger('activities-channel', 'activity-marked-done', [
                     'user_id' => $userId,
                     'activity_id' => $activityId,
                 ]);
+
+                // Respond with the updated is_done value
                 return $this->respond([
                     'status' => true,
                     'message' => 'Activity marked as done successfully.',
+                    'is_done' => $updatedActivity['is_done'], // Return the updated value of is_done
                 ], ResponseInterface::HTTP_OK);
             } else {
                 return $this->fail('Failed to mark activity as done.', ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
