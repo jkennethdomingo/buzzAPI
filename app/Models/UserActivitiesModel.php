@@ -113,20 +113,40 @@ class UserActivitiesModel extends Model
 
     private function rearrangeSequence($userId, $startingSequence)
     {
-        // Fetch activities with sequence greater than the starting sequence
-        $activities = $this->where('user_id', $userId)
+        // Ensure parameters are valid
+        if (empty($userId) || empty($startingSequence)) {
+            log_message('error', 'Invalid parameters: userId or startingSequence is empty');
+            return;
+        }
+
+        // Build the query to fetch activities
+        $builder = $this->where('user_id', $userId)
             ->where('sequence >', $startingSequence)
             ->where('is_done', 1)
-            ->orderBy('sequence', 'ASC')
-            ->findAll();
+            ->orderBy('sequence', 'ASC');
 
-        // Update sequence numbers
-        foreach ($activities as $index => $activity) {
-            $this->updateActivity($userId, $activity['activity_id'], [
-                'sequence' => $startingSequence + $index,
-            ]);
+        // Log the compiled query for debugging
+        $query = $builder->getCompiledSelect();
+        log_message('debug', 'Generated Query: ' . $query);
+
+        // Execute the query
+        $activities = $builder->findAll();
+
+        // If activities exist, update their sequence numbers
+        if (count($activities) > 0) {
+            foreach ($activities as $index => $activity) {
+                $newSequence = $startingSequence + $index;
+                log_message('debug', 'Updating activity ID ' . $activity['activity_id'] . ' to sequence ' . $newSequence);
+
+                $this->updateActivity($userId, $activity['activity_id'], [
+                    'sequence' => $newSequence,
+                ]);
+            }
+        } else {
+            log_message('debug', 'No activities found with sequence greater than ' . $startingSequence);
         }
     }
+
     public function getUserActivities($userId)
     {
         // Fetch the activities for the given user
