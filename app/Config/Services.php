@@ -5,7 +5,7 @@ namespace Config;
 use CodeIgniter\Config\BaseService;
 
 use App\Models\{
-    BuzzerStateModel, LogsModel, ScoresModel, UserModel, SectionsModel, ActivitiesModel, UserActivitiesModel, Attendance
+    BuzzerStateModel, LogsModel, ScoresModel, UserModel, SectionsModel, ActivitiesModel, UserActivitiesModel, AttendanceModel
 };
 
 /**
@@ -91,18 +91,18 @@ class Services extends BaseService
     public static function userActivitiesModel($getShared = true)
     {
         if ($getShared) {
-            return static::getSharedInstance('activitiesModel');
+            return static::getSharedInstance('userActivitiesModel');
         }
 
         return new UserActivitiesModel();
     }
 
-    public static function attendance($getShared = true)
+    public static function attendanceModel($getShared = true)
     {
         if ($getShared) {
-            return static::getSharedInstance('activitiesModel');
+            return static::getSharedInstance('attendanceModel');
         }
 
-        return new Attendance();
+        return new AttendanceModel();
     }
 }
