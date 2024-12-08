@@ -110,7 +110,6 @@ class UserActivitiesModel extends Model
             ->set($data)
             ->update();
     }
-
     private function rearrangeSequence($userId, $startingSequence)
     {
         // Ensure parameters are valid
@@ -119,8 +118,11 @@ class UserActivitiesModel extends Model
             return;
         }
 
+        // Create a new Query Builder instance
+        $builder = $this->builder();
+
         // Build the query to fetch activities
-        $builder = $this->where('user_id', $userId)
+        $builder->where('user_id', $userId)
             ->where('sequence >', $startingSequence)
             ->where('is_done', 1)
             ->orderBy('sequence', 'ASC');
@@ -130,7 +132,7 @@ class UserActivitiesModel extends Model
         log_message('debug', 'Generated Query: ' . $query);
 
         // Execute the query
-        $activities = $builder->findAll();
+        $activities = $builder->get()->getResultArray();
 
         // If activities exist, update their sequence numbers
         if (count($activities) > 0) {
@@ -146,6 +148,7 @@ class UserActivitiesModel extends Model
             log_message('debug', 'No activities found with sequence greater than ' . $startingSequence);
         }
     }
+
 
     public function getUserActivities($userId)
     {
