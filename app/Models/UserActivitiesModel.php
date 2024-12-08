@@ -117,7 +117,7 @@ class UserActivitiesModel extends Model
         $activities = $this->where('user_id', $userId)
             ->where('sequence >', $startingSequence)
             ->where('is_done', 1)
-            ->orderBy('sequence', 'asc')
+            ->orderBy('sequence', 'ASC')
             ->findAll();
 
         // Update sequence numbers
