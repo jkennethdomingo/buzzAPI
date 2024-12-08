@@ -555,6 +555,10 @@ class BuzzV3Controller extends ResourceController
             $result = $this->userActivitiesModel->unMarkAsDoneAnActivity($userId, $activityId);
 
             if ($result) {
+                $updatedActivity = $this->userActivitiesModel
+                    ->where('user_id', $userId)
+                    ->where('activity_id', $activityId)
+                    ->first();
                 $this->pusher->trigger('activities-channel', 'activity-unmarked-done', [
                     'user_id' => $userId,
                     'activity_id' => $activityId,
@@ -562,6 +566,8 @@ class BuzzV3Controller extends ResourceController
                 return $this->respond([
                     'status' => true,
                     'message' => 'Activity unmarked as done successfully.',
+                    'is_done' => $updatedActivity['is_done'], // Return the updated value of is_done
+
                 ], ResponseInterface::HTTP_OK);
             } else {
                 return $this->fail('Failed to unmark activity as done.', ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
@@ -600,6 +606,24 @@ class BuzzV3Controller extends ResourceController
             }
         } catch (\Exception $e) {
             return $this->failServerError($e->getMessage());
+        }
+    }
+
+    public function getUserActivities($userId)
+    {
+        $userActivitiesModel = new UserActivitiesModel();
+
+        // Fetch activities for the given user
+        $activities = $userActivitiesModel->getUserActivities($userId);
+
+        if ($activities) {
+            return $this->respond([
+                'status' => true,
+                'message' => 'User activities fetched successfully.',
+                'data' => $activities
+            ], 200);
+        } else {
+            return $this->failNotFound('No activities found for this user.');
         }
     }
 

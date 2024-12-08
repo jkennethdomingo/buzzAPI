@@ -14,7 +14,7 @@ $routes->get('/students/section/(:segment)', 'BuzzController::getAllStudents/$1'
 
 
 
-$routes->group('v2', function($routes) {
+$routes->group('v2', function ($routes) {
     $routes->get('dropdown', 'BuzzV2Controller::getSectionGrouping');
     $routes->get('state', 'BuzzV2Controller::getBuzzerState');
     $routes->post('login', 'BuzzV2Controller::login');
@@ -26,7 +26,7 @@ $routes->group('v2', function($routes) {
     $routes->post('logout', 'BuzzV2Controller::logout');
 });
 
-$routes->group('v3', function($routes) {
+$routes->group('v3', function ($routes) {
     $routes->post('login', 'BuzzV3Controller::login');
     $routes->get('dropdown', 'BuzzV3Controller::getSectionGrouping');
     $routes->get('list/(:segment)', 'BuzzV3Controller::getStudentsBySection/$1');
@@ -39,6 +39,7 @@ $routes->group('v3', function($routes) {
 
     // Activities
     $routes->get('activities', 'BuzzV3Controller::fetchActivities');
+    $routes->get('user-activities/(:num)', 'BuzzV3Controller::getUserActivities/$1');
     $routes->post('mark-as-done', 'BuzzV3Controller::markAsDoneAnActivity');
     $routes->post('unmark-as-done', 'BuzzV3Controller::unMarkAsDoneAnActivity');
     $routes->post('help', 'BuzzV3Controller::requestForHelp');

@@ -127,5 +127,11 @@ class UserActivitiesModel extends Model
             ]);
         }
     }
+    public function getUserActivities($userId)
+    {
+        // Fetch the activities for the given user
+        return $this->where('user_id', $userId)
+            ->findAll();
+    }
 
 }
