@@ -36,5 +36,13 @@ $routes->group('v3', function($routes) {
     $routes->post('logout-all', 'BuzzV3Controller::logoutAllPlayers');
     $routes->get('files', 'BuzzV3Controller::serveFile');
     $routes->post('award', 'BuzzV3Controller::awardScore');
+
+    // Activities
+    $routes->get('activities', 'BuzzV3Controller::fetchActivities');
+    $routes->post('mark-as-done', 'BuzzV3Controller::markAsDoneAnActivity');
+    $routes->post('un-mark-as-done', 'BuzzV3Controller::unMarkAsDoneAnActivity');
+    $routes->post('help', 'BuzzV3Controller::requestForHelp');
+    $routes->post('cancel-help', 'BuzzV3Controller::cancelRequestForHelp');
+    $routes->post('give-score', 'BuzzV3Controller::scoreAnActivity');
 });
 
