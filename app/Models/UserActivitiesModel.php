@@ -103,7 +103,7 @@ class UserActivitiesModel extends Model
         return true;
     }
 
-    private function updateActivity($userId, $activityId, $data)
+    public function updateActivity($userId, $activityId, $data)
     {
         return $this->where('user_id', $userId)
             ->where('activity_id', $activityId)
