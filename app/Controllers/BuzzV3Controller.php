@@ -589,23 +589,40 @@ class BuzzV3Controller extends ResourceController
         }
 
         try {
-            // Update the `requires_help` field to true (1)
-            $result = $this->userActivitiesModel->updateActivity($userId, $activityId, ['requires_help' => 1]);
+            // Check if the record exists
+            $existingRecord = $this->userActivitiesModel
+                ->where('user_id', $userId)
+                ->where('activity_id', $activityId)
+                ->first();
+
+            if ($existingRecord) {
+                // Update the `requires_help` field to true (1)
+                $result = $this->userActivitiesModel->updateActivity($userId, $activityId, ['requires_help' => 1]);
+            } else {
+                // Insert a new record with `requires_help` set to true (1)
+                $result = $this->userActivitiesModel->insert([
+                    'user_id' => $userId,
+                    'activity_id' => $activityId,
+                    'requires_help' => 1,
+                    // Add other required fields for the insert operation here
+                ]);
+            }
 
             if ($result) {
                 $updatedActivity = $this->userActivitiesModel
                     ->where('user_id', $userId)
                     ->where('activity_id', $activityId)
                     ->first();
+
                 $this->pusher->trigger('activities-channel', 'help-requested', [
                     'user_id' => $userId,
                     'activity_id' => $activityId,
                 ]);
+
                 return $this->respond([
                     'status' => true,
                     'message' => 'Help request submitted successfully.',
-                    'requires_help' => $updatedActivity['requires_help'], // Return the updated value of is_done
-
+                    'requires_help' => $updatedActivity['requires_help'], // Return the updated value of requires_help
                 ], ResponseInterface::HTTP_OK);
             } else {
                 return $this->fail('Failed to submit help request.', ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
@@ -614,6 +631,7 @@ class BuzzV3Controller extends ResourceController
             return $this->failServerError($e->getMessage());
         }
     }
+
 
     public function getUserActivities($userId)
     {
