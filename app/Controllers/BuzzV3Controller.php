@@ -604,7 +604,7 @@ class BuzzV3Controller extends ResourceController
                 return $this->respond([
                     'status' => true,
                     'message' => 'Help request submitted successfully.',
-                    'requires_help' => $updatedActivity['requires_help'], // Return the updated value of is_done
+                    'requ_help' => $updatedActivity['requ_help'], // Return the updated value of is_done
 
                 ], ResponseInterface::HTTP_OK);
             } else {
@@ -660,7 +660,7 @@ class BuzzV3Controller extends ResourceController
                 return $this->respond([
                     'status' => true,
                     'message' => 'Help request canceled successfully.',
-                    'requires_help' => $updatedActivity['requires_help'], // Return the updated value of is_done
+                    'requ_help' => $updatedActivity['requ_help'], // Return the updated value of is_done
 
                 ], ResponseInterface::HTTP_OK);
             } else {
