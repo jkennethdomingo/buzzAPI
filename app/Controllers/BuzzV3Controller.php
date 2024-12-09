@@ -593,6 +593,10 @@ class BuzzV3Controller extends ResourceController
             $result = $this->userActivitiesModel->updateActivity($userId, $activityId, ['requires_help' => 1]);
 
             if ($result) {
+                $updatedActivity = $this->userActivitiesModel
+                    ->where('user_id', $userId)
+                    ->where('activity_id', $activityId)
+                    ->first();
                 $this->pusher->trigger('activities-channel', 'help-requested', [
                     'user_id' => $userId,
                     'activity_id' => $activityId,
@@ -600,6 +604,8 @@ class BuzzV3Controller extends ResourceController
                 return $this->respond([
                     'status' => true,
                     'message' => 'Help request submitted successfully.',
+                    'request_help' => $updatedActivity['request_help'], // Return the updated value of is_done
+
                 ], ResponseInterface::HTTP_OK);
             } else {
                 return $this->fail('Failed to submit help request.', ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
@@ -643,6 +649,10 @@ class BuzzV3Controller extends ResourceController
             $result = $this->userActivitiesModel->updateActivity($userId, $activityId, ['requires_help' => 0]);
 
             if ($result) {
+                $updatedActivity = $this->userActivitiesModel
+                    ->where('user_id', $userId)
+                    ->where('activity_id', $activityId)
+                    ->first();
                 $this->pusher->trigger('activities-channel', 'help-request-canceled', [
                     'user_id' => $userId,
                     'activity_id' => $activityId,
@@ -650,6 +660,8 @@ class BuzzV3Controller extends ResourceController
                 return $this->respond([
                     'status' => true,
                     'message' => 'Help request canceled successfully.',
+                    'request_help' => $updatedActivity['request_help'], // Return the updated value of is_done
+
                 ], ResponseInterface::HTTP_OK);
             } else {
                 return $this->fail('Failed to cancel help request.', ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
