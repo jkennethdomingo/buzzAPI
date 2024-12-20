@@ -51,5 +51,8 @@ $routes->group('raffle', function ($routes) {
     // Route to get participants
     $routes->get('participants', 'RaffleController::getParticipants');
     $routes->post('add-participant', 'RaffleController::addParticipant');
+    $routes->put('raffle/edit-participant/(:segment)', 'RaffleController::editParticipant/$1');
+    $routes->delete('raffle/delete-participant/(:segment)', 'RaffleController::deleteParticipant/$1');
+    $routes->put('raffle/mark-as-winner/(:segment)', 'RaffleController::markAsWinner/$1');
 });
 
