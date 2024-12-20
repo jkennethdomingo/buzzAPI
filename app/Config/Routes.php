@@ -47,3 +47,8 @@ $routes->group('v3', function ($routes) {
     $routes->post('give-score', 'BuzzV3Controller::scoreAnActivity');
 });
 
+$routes->group('raffle', function ($routes) {
+    // Route to get participants
+    $routes->get('participants', 'RaffleController::getParticipants');
+});
+
