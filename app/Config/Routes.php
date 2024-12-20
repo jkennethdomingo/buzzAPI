@@ -50,5 +50,6 @@ $routes->group('v3', function ($routes) {
 $routes->group('raffle', function ($routes) {
     // Route to get participants
     $routes->get('participants', 'RaffleController::getParticipants');
+    $routes->post('add-participant', 'RaffleController::addParticipant');
 });
 
