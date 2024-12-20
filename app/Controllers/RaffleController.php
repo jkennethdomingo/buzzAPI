@@ -43,8 +43,8 @@ class RaffleController extends ResourceController
         $validation = \Config\Services::validation();
 
         $validation->setRules([
-            'firstname' => 'required|min_length[3]|max_length[50]',
-            'lastname'  => 'required|min_length[3]|max_length[50]'
+            'firstname' => 'required|min_length[2]|max_length[50]',
+            'lastname'  => 'required|min_length[2]|max_length[50]'
         ]);
 
         if (!$validation->withRequest($this->request)->run()) {
@@ -115,6 +115,40 @@ class RaffleController extends ResourceController
             ], ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    
+    public function unmarkAsWinner($id)
+    {
+        $raffleModel = new RaffleModel();
+
+        try {
+            // Check if participant exists
+            $participant = $raffleModel->find($id);
+            if (!$participant) {
+                return $this->respond([
+                    'status' => ResponseInterface::HTTP_NOT_FOUND,
+                    'message' => 'Participant not found.'
+                ], ResponseInterface::HTTP_NOT_FOUND);
+            }
+
+            // Update the has_won field to 1
+            $raffleModel->update($id, ['has_won' => 0]);
+
+            // Return success response
+            return $this->respond([
+                'status' => ResponseInterface::HTTP_OK,
+                'message' => 'Participant unmarked as winner successfully.',
+                'data' => $participant
+            ], ResponseInterface::HTTP_OK);
+        } catch (\Exception $e) {
+            // Return error response in case of failure
+            return $this->respond([
+                'status' => ResponseInterface::HTTP_INTERNAL_SERVER_ERROR,
+                'message' => 'An error occurred while marking the participant as a winner.',
+                'error' => $e->getMessage()
+            ], ResponseInterface::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
     public function editParticipant($id)
     {
         $raffleModel = new RaffleModel();
@@ -123,8 +157,8 @@ class RaffleController extends ResourceController
         $validation = \Config\Services::validation();
 
         $validation->setRules([
-            'firstname' => 'required|min_length[3]|max_length[50]',
-            'lastname'  => 'required|min_length[3]|max_length[50]'
+            'firstname' => 'required|min_length[2]|max_length[50]',
+            'lastname'  => 'required|min_length[2]|max_length[50]'
         ]);
 
         if (!$validation->withRequest($this->request)->run()) {
@@ -139,7 +173,8 @@ class RaffleController extends ResourceController
             // Prepare the data
             $data = [
                 'firstname' => $this->request->getVar('firstname'),
-                'lastname'  => $this->request->getVar('lastname')
+                'lastname'  => $this->request->getVar('lastname'),
+                // 'has_won'  => $this->request->getVar('has_won'),
             ];
 
             // Update the participant in the database
