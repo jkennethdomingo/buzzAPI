@@ -54,6 +54,6 @@ $routes->group('raffle', function ($routes) {
     $routes->put('edit-participant/(:segment)', 'RaffleController::editParticipant/$1');
     $routes->delete('delete-participant/(:segment)', 'RaffleController::deleteParticipant/$1');
     $routes->put('mark-as-winner/(:segment)', 'RaffleController::markAsWinner/$1');
-    $routes->put('unmark-as-winner/(:segment)', 'RaffleController::markAsWinner/$1');
+    $routes->put('unmark-as-winner/(:segment)', 'RaffleController::unmarkAsWinner/$1');
 });
 
